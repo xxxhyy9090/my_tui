@@ -29,7 +29,12 @@ fn main() -> Result<()> {
             if key.kind==KeyEventKind::Press{
                 match key.code{
                     KeyCode::Char('q')=>break,
-                    KeyCode::Char(c)=>input_number_str.push(c),
+                    KeyCode::Char(c)=> {
+                        if c!='\x7f' && c!='\x08'{
+                            input_number_str.push(c);
+                        }
+                    },
+
                     KeyCode::Backspace=>{input_number_str.pop();},
                     KeyCode::Enter=>input_number_str.clear(),
                     _=>(),
