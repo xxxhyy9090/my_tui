@@ -8,7 +8,7 @@ use crossterm::event::KeyEventKind;
 use ratatui::{backend::CrosstermBackend, Terminal};
 
 fn main() -> Result<()> {
-    // ① setup：进 raw 模式 + 备用屏幕
+    // 备用屏幕
     enable_raw_mode()?;
     let mut stdout = std::io::stdout();
     execute!(stdout, EnterAlternateScreen)?;
@@ -16,17 +16,22 @@ fn main() -> Result<()> {
     let mut terminal = Terminal::new(backend)?;
     let mut input_number_str=String::new();
 
-    // ② 主循环：画 → 读按键 → 循环，按 q 退出
+    
     loop {
         terminal.draw(|f| {
             f.render_widget(
                 ratatui::widgets::Paragraph::new(format!("INPUT YOUR NUMBER：{}",input_number_str)),
-                f.area(),   // 老版本可能是 f.size()
+                f.area(),   
             );
         })?;
 
         if let Event::Key(key) = event::read()? {
             if key.kind==KeyEventKind::Press{
+                use std::io::Write;
+                if let Ok(mut f) = std::fs::OpenOptions::new()
+                    .create(true).append(true).open("/tmp/key.log") {
+                    let _ = writeln!(f, "{:?}", key);
+                }
                 match key.code{
                     KeyCode::Char('q')=>break,
                     KeyCode::Char(c)=> {
@@ -44,7 +49,7 @@ fn main() -> Result<()> {
         }
     }
 
-    // ③ teardown：恢复终端（千万别漏！）
+    
     disable_raw_mode()?;
     execute!(terminal.backend_mut(), LeaveAlternateScreen)?;
     Ok(())
